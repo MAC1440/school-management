@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import {
   GraduationCap,
   ShieldCheck,
@@ -14,8 +15,12 @@ import {
   FileSpreadsheet,
   Clock,
   LogOut,
+  Sun,
+  Moon,
 } from 'lucide-react';
 import { User, Role } from '../types';
+import { RootState } from '../store/store';
+import { toggleTheme } from '../store/slices/themeSlice';
 
 interface HeaderProps {
   currentUser: User | null;
@@ -44,6 +49,8 @@ export const Header: React.FC<HeaderProps> = ({
 }) => {
   const [showRoleDropdown, setShowRoleDropdown] = useState(false);
   const [showNotificationModal, setShowNotificationModal] = useState(false);
+  const dispatch = useDispatch();
+  const themeMode = useSelector((state: RootState) => state.theme?.mode || 'dark');
 
   const roleIcons: Record<string, React.ReactNode> = {
     admin: <ShieldCheck className="w-3.5 h-3.5 text-purple-600" />,
@@ -162,6 +169,25 @@ export const Header: React.FC<HeaderProps> = ({
           {/* Right Action Bar */}
           <div className="flex items-center space-x-3">
             
+            {/* Theme Toggle (Dark / Light) */}
+            <button
+              onClick={() => dispatch(toggleTheme())}
+              title={`Switch to ${themeMode === 'dark' ? 'Light' : 'Dark'} Mode`}
+              className="p-2 text-slate-300 hover:text-white hover:bg-slate-800 rounded-lg transition-colors flex items-center space-x-1.5 text-xs font-medium border border-slate-700 bg-slate-800/50"
+            >
+              {themeMode === 'dark' ? (
+                <>
+                  <Sun className="w-3.5 h-3.5 text-amber-400" />
+                  <span className="hidden sm:inline">Light</span>
+                </>
+              ) : (
+                <>
+                  <Moon className="w-3.5 h-3.5 text-blue-400" />
+                  <span className="hidden sm:inline">Dark</span>
+                </>
+              )}
+            </button>
+
             {/* Database Reset */}
             <button
               onClick={onResetData}
