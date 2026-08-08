@@ -1,0 +1,6 @@
+{
+  "name": "EduPulse School Management System",
+  "description": "Comprehensive School Management System featuring Admin, Principal, Teacher, and Student portals with shared attendance tracking, gradebook, course scheduling, and AI insights.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
