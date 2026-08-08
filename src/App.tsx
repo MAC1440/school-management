@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
+import { LandingPage } from './features/landing/LandingPage';
+import { AuthScreen } from './features/auth/AuthScreen';
+import { AdminPortal } from './features/admin/AdminPortal';
+import { PrincipalPortal } from './features/principal/PrincipalPortal';
+import { TeacherPortal } from './features/teacher/TeacherPortal';
+import { StudentPortal } from './features/student/StudentPortal';
 import { Header } from './components/Header';
-import { LandingPage } from './components/LandingPage';
-import { AuthScreen } from './components/AuthScreen';
 import { AdmissionForm } from './components/AdmissionForm';
 import { KioskAttendance } from './components/KioskAttendance';
-import { AdminPortal } from './components/AdminPortal';
-import { PrincipalPortal } from './components/PrincipalPortal';
-import { TeacherPortal } from './components/TeacherPortal';
-import { StudentPortal } from './components/StudentPortal';
 import { SharedScheduleView } from './components/SharedScheduleView';
 import { SharedAnnouncements } from './components/SharedAnnouncements';
 

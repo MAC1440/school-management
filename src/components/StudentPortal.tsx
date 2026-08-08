@@ -29,8 +29,7 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({
   grades = [],
   attendance = [],
 }) => {
-  const [activeTab, setActiveTab] = useState<'grades' | 'upcoming' | 'attendance' | 'ai-study'>('grades');
-  const [aiStudyAdvice, setAiStudyAdvice] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'grades' | 'upcoming' | 'attendance'>('grades');
   const [upcomingAssessments, setUpcomingAssessments] = useState<AssessmentItem[]>([]);
 
   useEffect(() => {
@@ -74,12 +73,6 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({
       letterGrade: percentageToLetterGrade(avg),
     };
   });
-
-  const handleGetAiAdvice = () => {
-    setAiStudyAdvice(
-      `### Personalized AI Study Guidance for ${studentUser.name}\n\n1. **Physics C (Rotational Dynamics - 94%)**: Outstanding mathematical precision! Focus on practicing angular momentum conservation problems to lock in an A+.\n2. **Calculus BC (Taylor Series - 96%)**: Strong performance. Review second-order differential equations before next week's seminar.\n3. **AP World History (DBQ Essay - 88%)**: Work on synthesizing primary source quotes into thesis statements for full rubric points.\n4. **Recommended Habit**: Allocate 25 minutes each evening for active recall practice.`
-    );
-  };
 
   const handlePrintReportCard = () => {
     window.print();
@@ -193,18 +186,6 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({
         >
           <Calendar className="w-4 h-4" />
           <span>My Attendance Log</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('ai-study')}
-          className={`pb-3 px-1 border-b-2 transition-all flex items-center space-x-2 ${
-            activeTab === 'ai-study'
-              ? 'border-emerald-600 text-emerald-600'
-              : 'border-transparent text-slate-500 hover:text-slate-900'
-          }`}
-        >
-          <Sparkles className="w-4 h-4 text-emerald-500" />
-          <span>AI Study Guidance</span>
         </button>
       </div>
 
@@ -324,31 +305,6 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({
               </div>
             ))}
           </div>
-        </div>
-      )}
-
-      {/* TAB 4: AI STUDY ADVISOR */}
-      {activeTab === 'ai-study' && (
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-xs p-6 space-y-4">
-          <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-            <div className="flex items-center space-x-2">
-              <Sparkles className="w-5 h-5 text-emerald-600" />
-              <h3 className="font-bold text-slate-900 text-base">AI Academic Study Advisor</h3>
-            </div>
-            <button
-              onClick={handleGetAiAdvice}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2 rounded-xl text-xs transition-colors shadow-md flex items-center space-x-1.5"
-            >
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>Generate Study Guidance</span>
-            </button>
-          </div>
-
-          {aiStudyAdvice && (
-            <div className="p-5 bg-emerald-50/50 border border-emerald-200 rounded-2xl text-xs text-slate-800 whitespace-pre-line leading-relaxed">
-              {aiStudyAdvice}
-            </div>
-          )}
         </div>
       )}
 

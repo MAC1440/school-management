@@ -405,31 +405,3 @@ export async function resetDatabase(): Promise<boolean> {
   const data = await res.json();
   return data.success;
 }
-
-// --- GEMINI AI SERVICES ---
-
-export async function generateAIExecutiveSummary(): Promise<{ summary: string; source: string }> {
-  const res = await fetch('/api/ai/executive-summary', { method: 'POST' });
-  if (!res.ok) throw new Error('AI request failed');
-  return res.json();
-}
-
-export async function generateAILessonPlan(data: { courseName: string; topic: string; gradeLevel: string; durationMinutes?: number }): Promise<{ plan: string; source: string }> {
-  const res = await fetch('/api/ai/generate-lesson-plan', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
-  });
-  if (!res.ok) throw new Error('AI request failed');
-  return res.json();
-}
-
-export async function generateAIStudentComment(data: { studentName: string; courseName: string; currentGrade: number; attendancePercent: number; recentStrengths?: string }): Promise<{ comment: string; source: string }> {
-  const res = await fetch('/api/ai/student-report-comment', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
-  });
-  if (!res.ok) throw new Error('AI request failed');
-  return res.json();
-}

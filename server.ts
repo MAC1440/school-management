@@ -1,7 +1,6 @@
 import express from 'express';
 import path from 'path';
 import { createServer as createViteServer } from 'vite';
-import { GoogleGenAI } from '@google/genai';
 import jwt from 'jsonwebtoken';
 import {
   INITIAL_USERS,
@@ -54,22 +53,6 @@ let admissions: AdmissionApplication[] = [...INITIAL_ADMISSIONS];
 let topicPlans: TeacherTopicPlan[] = [...INITIAL_TOPIC_PLANS];
 let leaveApplications: LeaveApplication[] = [...INITIAL_LEAVES];
 let assessments: AssessmentItem[] = [...INITIAL_ASSESSMENTS];
-
-// Gemini AI Helper
-function getGenAI() {
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey || apiKey === 'MY_GEMINI_API_KEY') {
-    return null;
-  }
-  return new GoogleGenAI({
-    apiKey,
-    httpOptions: {
-      headers: {
-        'User-Agent': 'aistudio-build',
-      },
-    },
-  });
-}
 
 async function startServer() {
   const app = express();
@@ -592,122 +575,6 @@ async function startServer() {
     leaveApplications = [...INITIAL_LEAVES];
     assessments = [...INITIAL_ASSESSMENTS];
     res.json({ success: true, message: 'School database successfully reset to default state.' });
-  });
-
-  // --- GEMINI AI INTEGRATION ENDPOINTS ---
-
-  // 1. Executive Principal Insights
-  app.post('/api/ai/executive-summary', async (req, res) => {
-    try {
-      const ai = getGenAI();
-      if (!ai) {
-        return res.json({
-          summary:
-            "**Executive School Performance Report (Fallback Summary)**\n\n- **Overall Attendance**: Currently sitting at 94.2% across Grade 10-12. Physics and CS labs show 98% engagement.\n- **Academic Performance**: School-wide GPA average is 3.58. STEM courses show high performance in project-based assessments.\n- **Areas of Attention**: 2 students are currently flagged for attendance follow-up in morning sessions.\n- **Strategic Recommendation**: Expand faculty workshop on AI tools and set up automated tardy notifications for parents.",
-          source: 'simulated',
-        });
-      }
-
-      const prompt = `You are an expert AI Education Policy Analyst assisting a School Principal. 
-Here are current real-time metrics:
-Total Students: ${users.filter((u) => u.role === 'student').length}
-Total Courses: ${courses.length}
-Attendance Records Count: ${attendance.length}
-Grades Recorded Count: ${grades.length}
-
-Generate a concise, professional executive summary with 4 bullet points:
-1. Overall School Climate & Attendance Assessment
-2. Academic Achievement & Grade Highlights
-3. Immediate At-Risk Intervention Priorities
-4. Recommended Next Steps for Department Chairs`;
-
-      const response = await ai.models.generateContent({
-        model: 'gemini-3.6-flash',
-        contents: prompt,
-      });
-
-      res.json({ summary: response.text, source: 'gemini' });
-    } catch (err: any) {
-      console.error('Gemini AI error:', err);
-      res.json({
-        summary:
-          "**Executive School Performance Report**\n\n- **Attendance**: High participation across morning STEM and Humanities blocks.\n- **Grades**: Math and CS departments show strong project outcomes.\n- **Interventions**: Automated alert active for students with below 80% attendance.\n- **Faculty Focus**: Recommended peer mentoring between senior and junior department chairs.",
-        source: 'fallback',
-      });
-    }
-  });
-
-  // 2. AI Teacher Lesson Plan Generator
-  app.post('/api/ai/generate-lesson-plan', async (req, res) => {
-    const { courseName, topic, gradeLevel, durationMinutes } = req.body;
-    try {
-      const ai = getGenAI();
-      if (!ai) {
-        return res.json({
-          plan: `### Lesson Plan: ${topic || 'Key Concepts'} (${courseName || 'General Subject'})\n**Target Level**: ${gradeLevel || 'High School'} | **Duration**: ${durationMinutes || 60} mins\n\n1. **Warm-up & Prior Knowledge (10 mins)**: Interactive quiz and concept review.\n2. **Direct Instruction (20 mins)**: Core lecture with visual diagrams and worked examples.\n3. **Guided Group Activity (20 mins)**: Problem-solving in pairs with teacher guidance.\n4. **Formative Assessment & Exit Ticket (10 mins)**: Individual reflection prompt.`,
-          source: 'simulated',
-        });
-      }
-
-      const prompt = `Create a structured, highly effective lesson plan for a teacher in high school:
-Course: ${courseName}
-Topic: ${topic}
-Grade Level: ${gradeLevel}
-Duration: ${durationMinutes || 60} minutes
-
-Format with markdown headings:
-- Learning Objectives (2 bullet points)
-- Required Materials / Pre-requisites
-- Minute-by-minute Time Breakdown (Warm-up, Core Concept, Activity, Wrap-up)
-- Formative Assessment / Exit Ticket Question`;
-
-      const response = await ai.models.generateContent({
-        model: 'gemini-3.6-flash',
-        contents: prompt,
-      });
-
-      res.json({ plan: response.text, source: 'gemini' });
-    } catch (err: any) {
-      res.json({
-        plan: `### Lesson Plan: ${topic || 'Core Topic'}\n- **Objectives**: Master foundational principles and apply to problem sets.\n- **Breakdown**: 10m Warmup, 25m Conceptual Explanation, 20m Lab Practice, 5m Exit Ticket.`,
-        source: 'fallback',
-      });
-    }
-  });
-
-  // 3. AI Student Report & Progress Feedback
-  app.post('/api/ai/student-report-comment', async (req, res) => {
-    const { studentName, courseName, currentGrade, attendancePercent, recentStrengths } = req.body;
-    try {
-      const ai = getGenAI();
-      if (!ai) {
-        return res.json({
-          comment: `${studentName} demonstrates remarkable commitment in ${courseName}. With a grade score of ${currentGrade}% and an attendance rate of ${attendancePercent}%, they consistently contribute thoughtful insights during class discussions. Continuing to review assignment feedback will help maintain this strong momentum.`,
-          source: 'simulated',
-        });
-      }
-
-      const prompt = `Generate a warm, constructive, professional teacher report card comment for a student:
-Student Name: ${studentName}
-Course: ${courseName}
-Current Grade Percentage: ${currentGrade}%
-Attendance Rate: ${attendancePercent}%
-Noted Strengths: ${recentStrengths || 'Active participation and steady assignment completion'}
-
-Write 3 sentences: 1 praise line, 1 technical strength, and 1 encouraging growth tip.`;
-
-      const response = await ai.models.generateContent({
-        model: 'gemini-3.6-flash',
-        contents: prompt,
-      });
-
-      res.json({ comment: response.text, source: 'gemini' });
-    } catch (err: any) {
-      res.json({
-        comment: `${studentName} continues to make positive progress in ${courseName}. Their current grade of ${currentGrade}% reflects dedicated work ethic and active involvement. Keep up the high standard!`,
-        source: 'fallback',
-      });
-    }
   });
 
   // VITE MIDDLEWARE SETUP

@@ -26,7 +26,7 @@ import {
   Cell,
 } from 'recharts';
 import { SchoolStats, Announcement, User, GradeRecord, AttendanceRecord } from '../types';
-import { generateAIExecutiveSummary, saveAnnouncement } from '../lib/api';
+import { saveAnnouncement } from '../lib/api';
 
 interface PrincipalPortalProps {
   stats: SchoolStats | null;
@@ -49,33 +49,12 @@ export const PrincipalPortal: React.FC<PrincipalPortalProps> = ({
   const safeUsers = Array.isArray(users) ? users : [];
   const safeGrades = Array.isArray(grades) ? grades : [];
   const safeAttendance = Array.isArray(attendance) ? attendance : [];
-  const [aiSummary, setAiSummary] = useState<string | null>(null);
-  const [isAiLoading, setIsAiLoading] = useState(false);
-  const [aiSource, setAiSource] = useState<string>('');
 
   // Announcement Modal
   const [isAnnouncementModalOpen, setIsAnnouncementModalOpen] = useState(false);
   const [annTitle, setAnnTitle] = useState('');
   const [annContent, setAnnContent] = useState('');
   const [annPriority, setAnnPriority] = useState<'urgent' | 'normal' | 'info'>('normal');
-
-  useEffect(() => {
-    // Initial load AI summary
-    handleGenerateAiSummary();
-  }, []);
-
-  const handleGenerateAiSummary = async () => {
-    setIsAiLoading(true);
-    try {
-      const res = await generateAIExecutiveSummary();
-      setAiSummary(res.summary);
-      setAiSource(res.source);
-    } catch (err) {
-      setAiSummary('Failed to connect to AI server. Please retry.');
-    } finally {
-      setIsAiLoading(false);
-    }
-  };
 
   const handlePublishAnnouncement = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -128,7 +107,7 @@ export const PrincipalPortal: React.FC<PrincipalPortalProps> = ({
             </div>
             <h1 className="text-2xl font-bold tracking-tight">School Executive Intelligence & KPIs</h1>
             <p className="text-amber-100/80 text-sm mt-1 max-w-xl">
-              Real-time oversight of overall academic performance, schoolwide attendance metrics, faculty evaluations, and AI executive summaries.
+              Real-time oversight of overall academic performance, schoolwide attendance metrics, and faculty evaluations.
             </p>
           </div>
 
@@ -139,14 +118,6 @@ export const PrincipalPortal: React.FC<PrincipalPortalProps> = ({
             >
               <Megaphone className="w-4 h-4" />
               <span>Broadcast Announcement</span>
-            </button>
-            <button
-              onClick={handleGenerateAiSummary}
-              disabled={isAiLoading}
-              className="bg-white/10 hover:bg-white/20 text-white font-bold px-4 py-2.5 rounded-xl text-xs transition-all border border-amber-300/30 flex items-center space-x-2"
-            >
-              <Sparkles className="w-4 h-4 text-amber-300" />
-              <span>{isAiLoading ? 'Analyzing...' : 'Refresh AI Analysis'}</span>
             </button>
           </div>
         </div>
@@ -208,32 +179,6 @@ export const PrincipalPortal: React.FC<PrincipalPortalProps> = ({
           </p>
           <p className="text-[11px] text-amber-700 font-medium mt-1">Requires counselor intervention</p>
         </div>
-      </div>
-
-      {/* AI Executive Summary Box (Gemini AI) */}
-      <div className="bg-gradient-to-br from-indigo-900 via-slate-900 to-slate-950 rounded-2xl p-6 text-white shadow-lg border border-indigo-500/20">
-        <div className="flex items-center justify-between mb-3 pb-3 border-b border-indigo-500/20">
-          <div className="flex items-center space-x-2">
-            <Sparkles className="w-5 h-5 text-amber-400 animate-pulse" />
-            <h3 className="font-bold text-sm tracking-wide text-indigo-100">
-              AI Principal Executive Intelligence
-            </h3>
-          </div>
-          <span className="text-[10px] bg-indigo-500/20 text-indigo-300 border border-indigo-400/30 px-2.5 py-0.5 rounded-full font-mono uppercase">
-            Powered by Gemini
-          </span>
-        </div>
-
-        {isAiLoading ? (
-          <div className="py-8 text-center text-indigo-200 flex flex-col items-center space-y-2">
-            <RefreshCw className="w-6 h-6 animate-spin text-indigo-400" />
-            <p className="text-xs font-medium">Generating executive report from school metrics...</p>
-          </div>
-        ) : (
-          <div className="prose prose-invert prose-xs max-w-none text-xs text-indigo-100/90 whitespace-pre-line leading-relaxed">
-            {aiSummary}
-          </div>
-        )}
       </div>
 
       {/* Department Analytics Charts Section */}

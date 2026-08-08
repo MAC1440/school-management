@@ -34,8 +34,6 @@ import {
 import {
   submitBatchAttendance,
   saveGrade,
-  generateAILessonPlan,
-  generateAIStudentComment,
   fetchTopicPlans,
   toggleTopicCompletion,
   submitLeaveApplication,
@@ -71,7 +69,7 @@ export const TeacherPortal: React.FC<TeacherPortalProps> = ({
   const activeCourse = safeCourses.find((c) => c.id === selectedCourseId) || teacherCourses[0];
 
   const [activeSubTab, setActiveSubTab] = useState<
-    'profile' | 'topics' | 'attendance' | 'gradebook' | 'leaves' | 'ai-tools'
+    'profile' | 'topics' | 'attendance' | 'gradebook' | 'leaves'
   >('profile');
 
   // --- TOPIC TRACKER STATE ---
@@ -247,57 +245,6 @@ export const TeacherPortal: React.FC<TeacherPortalProps> = ({
     onRefreshData();
   };
 
-  // AI Tools
-  const [lessonTopic, setLessonTopic] = useState('Rotational Dynamics & Torque');
-  const [lessonPlanResult, setLessonPlanResult] = useState<string | null>(null);
-  const [isGeneratingPlan, setIsGeneratingPlan] = useState(false);
-
-  const [aiStudentId, setAiStudentId] = useState(courseStudents[0]?.id || 'student-1');
-  const [studentCommentResult, setStudentCommentResult] = useState<string | null>(null);
-  const [isGeneratingComment, setIsGeneratingComment] = useState(false);
-
-  const handleGeneratePlan = async () => {
-    setIsGeneratingPlan(true);
-    try {
-      const res = await generateAILessonPlan({
-        courseName: activeCourse ? activeCourse.name : 'AP Physics',
-        topic: lessonTopic,
-        gradeLevel: activeCourse ? activeCourse.gradeLevel : 'Grade 11',
-        durationMinutes: 60,
-      });
-      setLessonPlanResult(res.plan);
-    } catch (err) {
-      setLessonPlanResult('Failed to generate lesson plan.');
-    } finally {
-      setIsGeneratingPlan(false);
-    }
-  };
-
-  const handleGenerateComment = async () => {
-    setIsGeneratingComment(true);
-    try {
-      const st = students.find((s) => s.id === aiStudentId);
-      const stGrades = grades.filter((g) => g.studentId === aiStudentId && g.courseId === selectedCourseId);
-      const avg =
-        stGrades.length > 0
-          ? Math.round(stGrades.reduce((a, b) => a + (b.score / b.maxScore) * 100, 0) / stGrades.length)
-          : 92;
-
-      const res = await generateAIStudentComment({
-        studentName: st ? st.name : 'Marcus Vance',
-        courseName: activeCourse ? activeCourse.name : 'AP Physics',
-        currentGrade: avg,
-        attendancePercent: 95,
-        recentStrengths: 'Demonstrates deep analytical rigor.',
-      });
-      setStudentCommentResult(res.comment);
-    } catch (err) {
-      setStudentCommentResult('Failed to generate comment.');
-    } finally {
-      setIsGeneratingComment(false);
-    }
-  };
-
   const currentCourseGrades = safeGrades.filter((g) => g.courseId === selectedCourseId);
 
   // Pay cut calculation
@@ -394,16 +341,6 @@ export const TeacherPortal: React.FC<TeacherPortalProps> = ({
         >
           <Briefcase className="w-4 h-4" />
           <span>Apply Leave</span>
-        </button>
-
-        <button
-          onClick={() => setActiveSubTab('ai-tools')}
-          className={`px-3 py-2 rounded-xl transition-all flex items-center gap-1.5 ${
-            activeSubTab === 'ai-tools' ? 'bg-indigo-600 text-white shadow-md' : 'bg-white text-indigo-700 hover:bg-indigo-50 border border-indigo-200'
-          }`}
-        >
-          <Sparkles className="w-4 h-4" />
-          <span>AI Lesson Planner</span>
         </button>
       </div>
 
@@ -789,84 +726,6 @@ export const TeacherPortal: React.FC<TeacherPortalProps> = ({
               Submit Leave Request
             </button>
           </form>
-        </div>
-      )}
-
-      {/* --- SUB-TAB 6: AI LESSON PLANNER --- */}
-      {activeSubTab === 'ai-tools' && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-xs p-6 space-y-4">
-            <div className="flex items-center space-x-2 pb-3 border-b border-slate-100">
-              <Sparkles className="w-5 h-5 text-indigo-600" />
-              <div>
-                <h3 className="font-bold text-slate-900 text-base">AI Lesson Plan Architect</h3>
-                <p className="text-xs text-slate-500">Generate lesson schedules via Gemini AI</p>
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">Topic</label>
-              <input
-                type="text"
-                value={lessonTopic}
-                onChange={(e) => setLessonTopic(e.target.value)}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs text-slate-800 focus:ring-2 focus:ring-indigo-500"
-              />
-            </div>
-
-            <button
-              onClick={handleGeneratePlan}
-              disabled={isGeneratingPlan}
-              className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center justify-center space-x-2"
-            >
-              <Sparkles className="w-4 h-4" />
-              <span>{isGeneratingPlan ? 'Generating...' : 'Generate AI Lesson Plan'}</span>
-            </button>
-
-            {lessonPlanResult && (
-              <div className="mt-4 p-4 bg-slate-50 rounded-2xl border border-slate-200 text-xs text-slate-800 whitespace-pre-line leading-relaxed max-h-80 overflow-y-auto">
-                {lessonPlanResult}
-              </div>
-            )}
-          </div>
-
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-xs p-6 space-y-4">
-            <div className="flex items-center space-x-2 pb-3 border-b border-slate-100">
-              <FileText className="w-5 h-5 text-blue-600" />
-              <div>
-                <h3 className="font-bold text-slate-900 text-base">AI Progress Comment Writer</h3>
-                <p className="text-xs text-slate-500">Personalized feedback remarks</p>
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">Select Student</label>
-              <select
-                value={aiStudentId}
-                onChange={(e) => setAiStudentId(e.target.value)}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs font-medium text-slate-800"
-              >
-                {courseStudents.map((st) => (
-                  <option key={st.id} value={st.id}>{st.name}</option>
-                ))}
-              </select>
-            </div>
-
-            <button
-              onClick={handleGenerateComment}
-              disabled={isGeneratingComment}
-              className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center justify-center space-x-2"
-            >
-              <Send className="w-4 h-4" />
-              <span>{isGeneratingComment ? 'Writing...' : 'Generate Comment'}</span>
-            </button>
-
-            {studentCommentResult && (
-              <div className="mt-4 p-4 bg-blue-50/60 rounded-2xl border border-blue-200 text-xs text-blue-950 font-medium leading-relaxed">
-                "{studentCommentResult}"
-              </div>
-            )}
-          </div>
         </div>
       )}
 
